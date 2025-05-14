@@ -11,7 +11,10 @@ const initialPlayers = Array(4).fill(null).map((_, i) => ({
 
 const unitPool = ["Seele", "Blade", "Bronya", "Kafka", "Jingliu"];
 
-const calculateCost = (bid, eidolon) => bid + eidolon * 50 ;
+
+
+const calculateCost = (bid, eidolon, doNotOwnCount) => bid + eidolon * 50 + doNotOwnCount * 100;
+
 
 export default function AuctionDraft() {
   const [players, setPlayers] = useState(initialPlayers);
@@ -23,16 +26,25 @@ export default function AuctionDraft() {
   const [selectedUnit, setSelectedUnit] = useState("");
   const [doNotOwn, setDoNotOwn] = useState(Array(4).fill(false));
 
+  
+
   const handleBidSubmit = () => {
     if (!selectedUnit) return;
-
-    const numericBids = bids.map((b, i) => parseInt(b) || 0);
-    const eidolons = eidolonInputs.map((e, i) => parseInt(e) || 0);
-
+  
+    const numericBids = bids.map(b => parseInt(b) || 0);
+    const eidolons = eidolonInputs.map(e => parseInt(e) || 0);
+    const doNotOwnCount = doNotOwn.filter(Boolean).length;
+    
     const validBids = players.map((p, i) => {
-      const totalCost = calculateCost(numericBids[i], eidolons[i]);
-      return p.budget >= totalCost ? { player: p, bid: numericBids[i], totalCost, eidolon: eidolons[i], idx: i } : null;
-    }).filter(Boolean);
+      const totalCost = calculateCost(numericBids[i], eidolons[i], doNotOwnCount);
+      return p.budget >= totalCost ? {
+        player: p,
+        bid: numericBids[i],
+        totalCost,
+        eidolon: eidolons[i],
+        idx: i
+      } : null;
+    }).filter(Boolean);  
 
     let highest = null;
     for (let entry of validBids) {
@@ -77,6 +89,8 @@ export default function AuctionDraft() {
     setSelectedUnit("");
     setBids(Array(4).fill(""));
     setEidolonInputs(Array(4).fill(""));
+    setDoNotOwn(Array(4).fill(false));
+
   };
 
   if (availableUnits.length === 0) {
@@ -176,6 +190,20 @@ export default function AuctionDraft() {
                 </div>
                 </div>
 
+                <div className="flex items-center space-x-2">
+                    <input
+                        type="checkbox"
+                        checked={doNotOwn[idx]}
+                        onChange={(e) => {
+                        const updated = [...doNotOwn];
+                        updated[idx] = e.target.checked;
+                        setDoNotOwn(updated);
+                        }}
+                    />
+                    <label className="text-sm">Do not own unit</label>
+                </div>
+
+                {!doNotOwn[idx] && (
                 <div className="space-y-3">
                 <div>
                     <label className="block mb-1 text-sm font-medium">Bid Amount</label>
@@ -212,9 +240,10 @@ export default function AuctionDraft() {
 
 
                 <div className="bg-yellow-50 p-2 rounded text-sm">
-                    <p>Total price if won: ${calculateCost(parseInt(bids[idx]) || 0, parseInt(eidolonInputs[idx]) || 0)}</p>
+                <p>Total price if won: ${calculateCost(parseInt(bids[idx]) || 0, parseInt(eidolonInputs[idx]) || 0, doNotOwn.filter(Boolean).length)}</p>
                 </div>
                 </div>
+                )}
 
                 <div className="mt-4 bg-gray-100 p-3 rounded">
                 <p className="font-semibold mb-1">Current Team:</p>
