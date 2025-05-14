@@ -1,0 +1,244 @@
+import { useState } from "react";
+import { Button } from "./components/ui/button";
+import { Card, CardContent } from "./components/ui/card";
+
+const initialPlayers = Array(4).fill(null).map((_, i) => ({
+  id: i + 1,
+  name: `Player ${i + 1}`,
+  budget: 1000,
+  team: []
+}));
+
+const unitPool = ["Seele", "Blade", "Bronya", "Kafka", "Jingliu"];
+
+const calculateCost = (bid, eidolon) => bid + eidolon * 50;
+
+export default function AuctionDraft() {
+  const [players, setPlayers] = useState(initialPlayers);
+  const [bids, setBids] = useState(Array(4).fill(""));
+  const [draftHistory, setDraftHistory] = useState([]);
+  const [eidolonInputs, setEidolonInputs] = useState(Array(4).fill(""));
+  const [playerNames, setPlayerNames] = useState(players.map(p => p.name));
+  const [availableUnits, setAvailableUnits] = useState(unitPool);
+  const [selectedUnit, setSelectedUnit] = useState("");
+
+  const handleBidSubmit = () => {
+    if (!selectedUnit) return;
+
+    const numericBids = bids.map((b, i) => parseInt(b) || 0);
+    const eidolons = eidolonInputs.map((e, i) => parseInt(e) || 0);
+
+    const validBids = players.map((p, i) => {
+      const totalCost = calculateCost(numericBids[i], eidolons[i]);
+      return p.budget >= totalCost ? { player: p, bid: numericBids[i], totalCost, eidolon: eidolons[i], idx: i } : null;
+    }).filter(Boolean);
+
+    let highest = null;
+    for (let entry of validBids) {
+      if (!highest || entry.bid > highest.bid) {
+        highest = entry;
+      }
+    }
+
+    if (!highest) {
+      const fallbackIndex = players.findIndex(p => p.budget < 100);
+      if (fallbackIndex !== -1) {
+        const updatedPlayers = [...players];
+        updatedPlayers[fallbackIndex] = {
+          ...updatedPlayers[fallbackIndex],
+          team: [...updatedPlayers[fallbackIndex].team, { name: selectedUnit, eidolon: 0 }],
+        };
+        setPlayers(updatedPlayers);
+        setDraftHistory(prev => [
+          ...prev,
+          { unit: { name: selectedUnit, eidolon: 0 }, winner: players[fallbackIndex], bid: 0, fallback: true }
+        ]);
+      }
+    } else {
+      const updatedPlayers = players.map(p =>
+        p.id === highest.player.id
+          ? {
+              ...p,
+              name: playerNames[highest.idx],
+              budget: p.budget - highest.totalCost,
+              team: [...p.team, { name: selectedUnit, eidolon: highest.eidolon }],
+            }
+          : p
+      );
+      setPlayers(updatedPlayers);
+      setDraftHistory(prev => [
+        ...prev,
+        { unit: { name: selectedUnit, eidolon: highest.eidolon }, winner: { ...highest.player, name: playerNames[highest.idx] }, bid: highest.bid, fallback: false }
+      ]);
+    }
+
+    setAvailableUnits(prev => prev.filter(u => u !== selectedUnit));
+    setSelectedUnit("");
+    setBids(Array(4).fill(""));
+    setEidolonInputs(Array(4).fill(""));
+  };
+
+  if (availableUnits.length === 0) {
+    return (
+      <div className="flex flex-col items-center min-h-screen p-6 bg-gray-50">
+        <div className="w-full max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold mb-6 text-center">Draft Complete!</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {players.map((p, i) => (
+              <Card key={p.id} className="bg-white shadow-md w-full h-auto">
+                <CardContent className="p-4">
+                  <h3 className="font-bold text-lg mb-2">{playerNames[i]}</h3>
+                  <p className="mb-2"><span className="font-semibold">Budget Left:</span> ${p.budget}</p>
+                  <div className="bg-gray-100 p-3 rounded">
+                    <p className="font-semibold mb-1">Team:</p>
+                    {p.team.length > 0 ? (
+                      <ul className="list-disc pl-5">
+                        {p.team.map((u, idx) => (
+                          <li key={idx}>{u.name} (E{u.eidolon})</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>None</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="mt-8 bg-white p-4 rounded shadow">
+            <h3 className="text-xl font-semibold mb-4 text-center">Draft History</h3>
+            <div className="space-y-2">
+              {draftHistory.map((entry, idx) => (
+                <div key={idx} className="border-b pb-2 last:border-b-0">
+                  <span className="font-medium">{entry.unit.name} (E{entry.unit.eidolon})</span> - 
+                  {entry.fallback ? (
+                    <span className="text-gray-600"> {entry.winner.name} (fallback)</span>
+                  ) : (
+                    <span> won by <span className="font-medium">{entry.winner.name}</span> for <span className="text-green-600">${entry.bid}</span></span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center min-h-screen p-6 bg-gray-50">
+      <div className="w-full max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6 text-center">Facer's Auction Draft</h1>
+
+        <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+          <label className="block mb-2 font-semibold text-center">Select a unit to auction:</label>
+          <div className="flex justify-center">
+            <select
+              value={selectedUnit}
+              onChange={e => setSelectedUnit(e.target.value)}
+              className="border p-2 mb-2 w-full max-w-xs rounded"
+            >
+              <option value="">-- Choose Unit --</option>
+              {availableUnits.map(unit => (
+                <option key={unit} value={unit}>{unit}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {selectedUnit && (
+          <div className="bg-blue-50 p-3 rounded-lg mb-6 text-center">
+            <h2 className="text-xl font-semibold">
+              Bidding for: <span className="text-blue-600">{selectedUnit}</span>
+            </h2>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {players.map((player, idx) => (
+            <Card key={player.id} className="bg-white shadow-md">
+            <CardContent className="p-4">
+                <div className="mb-4">
+                <input
+                    className="border mb-2 p-2 w-full rounded"
+                    type="text"
+                    value={playerNames[idx]}
+                    placeholder={`Player ${idx + 1} Name`}
+                    onChange={e => {
+                    const updated = [...playerNames];
+                    updated[idx] = e.target.value;
+                    setPlayerNames(updated);
+                    }}
+                />
+                <div className="bg-gray-100 p-3 rounded mb-3">
+                    <p className="font-semibold">Budget: ${player.budget}</p>
+                </div>
+                </div>
+
+                <div className="space-y-3">
+                <div>
+                    <label className="block mb-1 text-sm font-medium">Bid Amount</label>
+                    <input
+                    className="border p-2 w-full rounded"
+                    type="number"
+                    value={bids[idx]}
+                    placeholder="Enter bid"
+                    onChange={e => {
+                        const newBids = [...bids];
+                        newBids[idx] = e.target.value;
+                        setBids(newBids);
+                    }}
+                    />
+                </div>
+
+                <div>
+                    <label className="block mb-1 text-sm font-medium">Eidolon Level</label>
+                    <input
+                    className="border p-2 w-full rounded"
+                    type="number"
+                    value={eidolonInputs[idx]}
+                    placeholder="Eidolon after winning"
+                    onChange={e => {
+                        const newEidolonInputs = [...eidolonInputs];
+                        newEidolonInputs[idx] = e.target.value;
+                        setEidolonInputs(newEidolonInputs);
+                    }}
+                    />
+                </div>
+
+                <div className="bg-yellow-50 p-2 rounded text-sm">
+                    <p>Total price if won: ${calculateCost(parseInt(bids[idx]) || 0, parseInt(eidolonInputs[idx]) || 0)}</p>
+                </div>
+                </div>
+
+                <div className="mt-4 bg-gray-100 p-3 rounded">
+                <p className="font-semibold mb-1">Current Team:</p>
+                {player.team.length > 0 ? (
+                    <ul className="list-disc pl-5">
+                    {player.team.map((u, i) => (
+                        <li key={i}>{u.name} (E{u.eidolon})</li>
+                    ))}
+                    </ul>
+                ) : (
+                    <p className="text-gray-500">None</p>
+                )}
+                </div>
+            </CardContent>
+            </Card>
+        ))}
+        </div>
+
+
+        <div className="flex justify-center">
+          <Button
+            onClick={handleBidSubmit}
+            disabled={!selectedUnit}
+            className="px-6 py-3 text-lg"
+          >
+            Submit Bids
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
