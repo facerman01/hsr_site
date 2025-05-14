@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "./components/ui/button";
 import { Card, CardContent } from "./components/ui/card";
+import characters from './Characters';
 
 const initialPlayers = Array(4).fill(null).map((_, i) => ({
   id: i + 1,
@@ -9,7 +10,19 @@ const initialPlayers = Array(4).fill(null).map((_, i) => ({
   team: []
 }));
 
-const unitPool = ["Seele", "Blade", "Bronya", "Kafka", "Jingliu"];
+const unitPool = [
+    "Acheron", "Aglaea", "Anaxa", "Archer", "Argenti", "Arlan", "Asta", "Aventurine", 
+    "Bailu", "Black Swan", "Blade", "Boothill", "Bronya", "Castorice", "Cipher", "Clara", 
+    "Dan Heng", "Dan Heng • Imbibitor Lunae", "Dr. Ratio", "Feixiao", "Firefly", "Fu Xuan", 
+    "Gallagher", "Gepard", "Guinaifen", "Hanya", "Herta", "Himeko", "Hook", "Huohuo", 
+    "Hyacine", "Jade", "Jiaoqiu", "Jing Yuan", "Jingliu", "Kafka", "Lingsha", "Luka", 
+    "Luocha", "Lynx", "March 7th", "March 7th • The Hunt", "Misha", "Moze", "Mydei", 
+    "Natasha", "Pela", "Phainon", "Qingque", "Rappa", "Robin", "Ruan Mei", "Saber", 
+    "Sampo", "Seele", "Serval", "Silver Wolf", "Sparkle", "Sunday", "Sushang", "The Herta", 
+    "Tingyun", "Tingyun • Fugue", "Topaz & Numby", "Trailblazer • Destruction", 
+    "Trailblazer • Harmony", "Trailblazer • Preservation", "Trailblazer • Remembrance", 
+    "Tribbie", "Welt", "Xueyi", "Yanqing", "Yukong", "Yunli"
+  ];
 
 
 
@@ -100,7 +113,7 @@ export default function AuctionDraft() {
           <h2 className="text-2xl font-bold mb-6 text-center">Draft Complete!</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {players.map((p, i) => (
-              <Card key={p.id} className="bg-white shadow-md w-full h-auto">
+              <Card key={p.id} className="bg-gray-100 shadow-md w-full h-auto">
                 <CardContent className="p-4">
                   <h3 className="font-bold text-lg mb-2">{playerNames[i]}</h3>
                   <p className="mb-2"><span className="font-semibold">Budget Left:</span> ${p.budget}</p>
@@ -120,7 +133,7 @@ export default function AuctionDraft() {
               </Card>
             ))}
           </div>
-          <div className="mt-8 bg-white p-4 rounded shadow">
+          <div className="mt-8 bg-gray-100 p-4 rounded shadow">
             <h3 className="text-xl font-semibold mb-4 text-center">Draft History</h3>
             <div className="space-y-2">
               {draftHistory.map((entry, idx) => (
@@ -141,11 +154,11 @@ export default function AuctionDraft() {
   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen p-6 bg-gray-50">
+    <div className="flex flex-col items-center min-h-screen p-6 bg-gray-400">
       <div className="w-full max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-6 text-center">Facer's Auction Draft</h1>
 
-        <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+        <div className="bg-gray-100 p-4 rounded-lg shadow-md mb-6">
           <label className="block mb-2 font-semibold text-center">Select a unit to auction:</label>
           <div className="flex justify-center">
             <select
@@ -169,11 +182,11 @@ export default function AuctionDraft() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6 ">
         {players.map((player, idx) => (
-            <Card key={player.id} className="bg-white shadow-md">
+            <Card key={player.id} className="bg-gray-100 shadow-md ">
             <CardContent className="p-4">
-                <div className="mb-4">
+                <div className="mb-4 ">
                 <input
                     className="border mb-2 p-2 w-full rounded"
                     type="text"
