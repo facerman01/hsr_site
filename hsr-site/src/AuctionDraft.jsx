@@ -11,7 +11,7 @@ const initialPlayers = Array(4).fill(null).map((_, i) => ({
 
 const unitPool = ["Seele", "Blade", "Bronya", "Kafka", "Jingliu"];
 
-const calculateCost = (bid, eidolon) => bid + eidolon * 50;
+const calculateCost = (bid, eidolon) => bid + eidolon * 50 ;
 
 export default function AuctionDraft() {
   const [players, setPlayers] = useState(initialPlayers);
@@ -21,6 +21,7 @@ export default function AuctionDraft() {
   const [playerNames, setPlayerNames] = useState(players.map(p => p.name));
   const [availableUnits, setAvailableUnits] = useState(unitPool);
   const [selectedUnit, setSelectedUnit] = useState("");
+  const [doNotOwn, setDoNotOwn] = useState(Array(4).fill(false));
 
   const handleBidSubmit = () => {
     if (!selectedUnit) return;
@@ -179,32 +180,36 @@ export default function AuctionDraft() {
                 <div>
                     <label className="block mb-1 text-sm font-medium">Bid Amount</label>
                     <input
-                    className="border p-2 w-full rounded"
-                    type="number"
-                    value={bids[idx]}
-                    placeholder="Enter bid"
-                    onChange={e => {
+                        className="border p-2 w-full rounded"
+                        type="text"
+                        value={bids[idx]}
+                        placeholder="Enter bid"
+                        onChange={e => {
                         const newBids = [...bids];
                         newBids[idx] = e.target.value;
                         setBids(newBids);
-                    }}
+                        }}
                     />
-                </div>
+                    </div>
 
-                <div>
+                    <div>
                     <label className="block mb-1 text-sm font-medium">Eidolon Level</label>
-                    <input
-                    className="border p-2 w-full rounded"
-                    type="number"
-                    value={eidolonInputs[idx]}
-                    placeholder="Eidolon after winning"
-                    onChange={e => {
+                    <select
+                        className="border p-2 w-full rounded"
+                        value={eidolonInputs[idx]}
+                        onChange={e => {
                         const newEidolonInputs = [...eidolonInputs];
                         newEidolonInputs[idx] = e.target.value;
                         setEidolonInputs(newEidolonInputs);
-                    }}
-                    />
+                        }}
+                    >
+                        <option value="">-- Select Eidolon --</option>
+                        {[...Array(7)].map((_, i) => (
+                        <option key={i} value={i}>{i}</option>
+                        ))}
+                    </select>
                 </div>
+
 
                 <div className="bg-yellow-50 p-2 rounded text-sm">
                     <p>Total price if won: ${calculateCost(parseInt(bids[idx]) || 0, parseInt(eidolonInputs[idx]) || 0)}</p>
