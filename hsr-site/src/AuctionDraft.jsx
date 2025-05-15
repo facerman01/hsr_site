@@ -59,7 +59,7 @@ export default function AuctionDraft() {
         const updatedPlayers = [...players];
         updatedPlayers[fallbackIndex] = {
           ...updatedPlayers[fallbackIndex],
-          team: [...updatedPlayers[fallbackIndex].team, { name: selectedUnit.name, eidolon: 0 }],
+          team: [...updatedPlayers[fallbackIndex].team, { name: selectedUnit.name, eidolon: 0, image: selectedUnit.image }],
         };
         setPlayers(updatedPlayers);
         setDraftHistory(prev => [
@@ -74,7 +74,7 @@ export default function AuctionDraft() {
               ...p,
               name: playerNames[highest.idx],
               budget: p.budget - highest.totalCost,
-              team: [...p.team, { name: selectedUnit.name, eidolon: highest.eidolon }],
+              team: [...p.team, { name: selectedUnit.name, eidolon: highest.eidolon, image: selectedUnit.image }],
             }
           : p
       );
@@ -107,9 +107,16 @@ export default function AuctionDraft() {
                   <div className="bg-gray-100 p-3 rounded">
                     <p className="font-semibold mb-1">Team:</p>
                     {p.team.length > 0 ? (
-                      <ul className="list-disc pl-5">
+                      <ul className="list-disc">
                         {p.team.map((u, idx) => (
-                          <li key={idx}>{u.name} (E{u.eidolon})</li>
+                          <li key={i} className="flex items-center justify-start">
+                          <span>{u.name} (E{u.eidolon})</span>
+                          <img
+                            src={u.image}
+                            alt={u.name}
+                            className="w-10 h-10 rounded ml-2"
+                          />
+                        </li>
                         ))}
                       </ul>
                     ) : (
@@ -142,7 +149,7 @@ export default function AuctionDraft() {
 
   return (
     <div className="flex flex-col items-center min-h-screen p-6 bg-gray-400">
-      <div className="w-full max-w-4xl mx-auto">
+      <div className="w-full max-w-5xl mx-auto">
         <h1 className="text-3xl font-bold mb-6 text-center">Facer's Auction Draft</h1>
 
         <div className="bg-gray-100 p-4 rounded-lg shadow-md mb-6">
@@ -165,11 +172,23 @@ export default function AuctionDraft() {
         </div>
 
         {selectedUnit && (
-          <div className="bg-blue-50 p-3 rounded-lg mb-6 text-center">
-            <h2 className="text-xl font-semibold">
-              Bidding for: <span className="text-blue-600">{selectedUnit.name}</span>
-            </h2>
+          <div className="bg-blue-50 p-3 rounded-lg mb-6 flex justify-center">
+            <div className="flex items-center">
+              <div className="mr-4 text-right">
+                <h2 className="text-xl font-semibold">
+                  Bidding for: <span className="text-blue-600">{selectedUnit.name}</span>
+                </h2>
+              </div>
+              <img
+                src={selectedUnit.image}
+                alt={selectedUnit.name}
+                style={{ width: '100px', height: '100px' }}
+                className="rounded"
+              />
+            </div>
           </div>
+
+
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6 ">
@@ -251,9 +270,17 @@ export default function AuctionDraft() {
                 <div className="mt-4 bg-gray-100 p-3 rounded">
                 <p className="font-semibold mb-1">Current Team:</p>
                 {player.team.length > 0 ? (
-                    <ul className="list-disc pl-5">
+                    <ul className="list-disc">
                     {player.team.map((u, i) => (
-                        <li key={i}>{u.name} (E{u.eidolon})</li>
+                        <li key={i} className="flex items-center justify-start">
+                        <span>{u.name} (E{u.eidolon})</span>
+                        <img
+                          src={u.image}
+                          alt={u.name}
+                          className="w-10 h-10 rounded ml-2"
+                        />
+                        
+                        </li>
                     ))}
                     </ul>
                 ) : (

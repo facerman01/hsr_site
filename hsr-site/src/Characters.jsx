@@ -1,6 +1,11 @@
 // src/data/characters.jsx
 
 const characters = [
+  {
+    name: "Acheron",
+    image: "/units/acheron.webp",
+    limited5Cost: true,
+  },
     {
       name: "Seele",
       image: "https://your-s3-bucket.s3.amazonaws.com/characters/seele.jpg",
