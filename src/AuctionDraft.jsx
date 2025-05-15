@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Button } from "./components/ui/button";
-import { Card, CardContent } from "./components/ui/card";
+import { Button } from "./components/ui/Button";
+import { Card, CardContent } from "./components/ui/Card";
 import characters from './Characters';
 
 const initialPlayers = Array(4).fill(null).map((_, i) => ({
