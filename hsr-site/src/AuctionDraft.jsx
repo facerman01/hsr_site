@@ -26,12 +26,21 @@ export default function AuctionDraft() {
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [doNotOwn, setDoNotOwn] = useState(Array(4).fill(false));
   const allTeamsFull = players.every(p => p.team.length >= 4);
+  const [history, setHistory] = useState([]);
+
 
   
 
   const handleBidSubmit = () => {
     if (!selectedUnit) return;
-  
+
+      // Save current state before making changes
+    setHistory(prev => [...prev, {
+      players: JSON.parse(JSON.stringify(players)),
+      availableUnits: [...availableUnits],
+      draftHistory: [...draftHistory],
+    }]);
+
     const numericBids = bids.map(b => parseInt(b) || 0);
     const eidolons = eidolonInputs.map(e => parseInt(e) || 0);
     const doNotOwnCount = doNotOwn.filter(Boolean).length;
@@ -104,6 +113,19 @@ export default function AuctionDraft() {
     setDoNotOwn(Array(4).fill(false));
 
   };
+
+  //undo function
+  const handleUndo = () => {
+    if (history.length === 0) return;
+  
+    const lastState = history[history.length - 1];
+    setPlayers(lastState.players);
+    setAvailableUnits(lastState.availableUnits);
+    setDraftHistory(lastState.draftHistory);
+    setHistory(prev => prev.slice(0, -1));
+  };
+  
+
 
   if (allTeamsFull) {
     return (
@@ -305,13 +327,20 @@ export default function AuctionDraft() {
         </div>
 
 
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-10">
           <Button
             onClick={handleBidSubmit}
             disabled={!selectedUnit}
             className="px-6 py-3 text-lg"
           >
             Submit Bids
+          </Button>
+          <Button
+            onClick={handleUndo}
+            disabled={history.length === 0}
+            className="px-6 py-3 text-lg bg-red-300 hover:bg-red-400"
+          >
+            Undo
           </Button>
         </div>
       </div>
