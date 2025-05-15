@@ -10,23 +10,10 @@ const initialPlayers = Array(4).fill(null).map((_, i) => ({
   team: []
 }));
 
-const unitPool = [
-    "Acheron", "Aglaea", "Anaxa", "Archer", "Argenti", "Arlan", "Asta", "Aventurine", 
-    "Bailu", "Black Swan", "Blade", "Boothill", "Bronya", "Castorice", "Cipher", "Clara", 
-    "Dan Heng", "Dan Heng • Imbibitor Lunae", "Dr. Ratio", "Feixiao", "Firefly", "Fu Xuan", 
-    "Gallagher", "Gepard", "Guinaifen", "Hanya", "Herta", "Himeko", "Hook", "Huohuo", 
-    "Hyacine", "Jade", "Jiaoqiu", "Jing Yuan", "Jingliu", "Kafka", "Lingsha", "Luka", 
-    "Luocha", "Lynx", "March 7th", "March 7th • The Hunt", "Misha", "Moze", "Mydei", 
-    "Natasha", "Pela", "Phainon", "Qingque", "Rappa", "Robin", "Ruan Mei", "Saber", 
-    "Sampo", "Seele", "Serval", "Silver Wolf", "Sparkle", "Sunday", "Sushang", "The Herta", 
-    "Tingyun", "Tingyun • Fugue", "Topaz & Numby", "Trailblazer • Destruction", 
-    "Trailblazer • Harmony", "Trailblazer • Preservation", "Trailblazer • Remembrance", 
-    "Tribbie", "Welt", "Xueyi", "Yanqing", "Yukong", "Yunli"
-  ];
+const unitPool = characters.map(c => c.name);
 
-
-
-const calculateCost = (bid, eidolon, doNotOwnCount) => bid + eidolon * 50 + doNotOwnCount * 100;
+const calculateCost = (bid, eidolon, doNotOwnCount, isLimited5Cost) => 
+  isLimited5Cost ? bid + eidolon * 50 + doNotOwnCount * 100 : bid + doNotOwnCount * 100;
 
 
 export default function AuctionDraft() {
@@ -36,7 +23,7 @@ export default function AuctionDraft() {
   const [eidolonInputs, setEidolonInputs] = useState(Array(4).fill(""));
   const [playerNames, setPlayerNames] = useState(players.map(p => p.name));
   const [availableUnits, setAvailableUnits] = useState(unitPool);
-  const [selectedUnit, setSelectedUnit] = useState("");
+  const [selectedUnit, setSelectedUnit] = useState(null);
   const [doNotOwn, setDoNotOwn] = useState(Array(4).fill(false));
 
   
@@ -49,7 +36,7 @@ export default function AuctionDraft() {
     const doNotOwnCount = doNotOwn.filter(Boolean).length;
     
     const validBids = players.map((p, i) => {
-      const totalCost = calculateCost(numericBids[i], eidolons[i], doNotOwnCount);
+      const totalCost = calculateCost(numericBids[i], eidolons[i], doNotOwnCount, selectedUnit.limited5Cost);
       return p.budget >= totalCost ? {
         player: p,
         bid: numericBids[i],
@@ -72,12 +59,12 @@ export default function AuctionDraft() {
         const updatedPlayers = [...players];
         updatedPlayers[fallbackIndex] = {
           ...updatedPlayers[fallbackIndex],
-          team: [...updatedPlayers[fallbackIndex].team, { name: selectedUnit, eidolon: 0 }],
+          team: [...updatedPlayers[fallbackIndex].team, { name: selectedUnit.name, eidolon: 0 }],
         };
         setPlayers(updatedPlayers);
         setDraftHistory(prev => [
           ...prev,
-          { unit: { name: selectedUnit, eidolon: 0 }, winner: players[fallbackIndex], bid: 0, fallback: true }
+          { unit: { name: selectedUnit.name, eidolon: 0 }, winner: players[fallbackIndex], bid: 0, fallback: true }
         ]);
       }
     } else {
@@ -87,19 +74,19 @@ export default function AuctionDraft() {
               ...p,
               name: playerNames[highest.idx],
               budget: p.budget - highest.totalCost,
-              team: [...p.team, { name: selectedUnit, eidolon: highest.eidolon }],
+              team: [...p.team, { name: selectedUnit.name, eidolon: highest.eidolon }],
             }
           : p
       );
       setPlayers(updatedPlayers);
       setDraftHistory(prev => [
         ...prev,
-        { unit: { name: selectedUnit, eidolon: highest.eidolon }, winner: { ...highest.player, name: playerNames[highest.idx] }, bid: highest.bid, fallback: false }
+        { unit: { name: selectedUnit.name, eidolon: highest.eidolon }, winner: { ...highest.player, name: playerNames[highest.idx] }, bid: highest.bid, fallback: false }
       ]);
     }
 
-    setAvailableUnits(prev => prev.filter(u => u !== selectedUnit));
-    setSelectedUnit("");
+    setAvailableUnits(prev => prev.filter(u => u !== selectedUnit.name));
+    setSelectedUnit(null);
     setBids(Array(4).fill(""));
     setEidolonInputs(Array(4).fill(""));
     setDoNotOwn(Array(4).fill(false));
@@ -162,8 +149,11 @@ export default function AuctionDraft() {
           <label className="block mb-2 font-semibold text-center">Select a unit to auction:</label>
           <div className="flex justify-center">
             <select
-              value={selectedUnit}
-              onChange={e => setSelectedUnit(e.target.value)}
+              value={selectedUnit ? selectedUnit.name : ""}
+              onChange={e => {
+                const unit = characters.find(c => c.name === e.target.value);
+                setSelectedUnit(unit || null);
+              }}
               className="border p-2 mb-2 w-full max-w-xs rounded"
             >
               <option value="">-- Choose Unit --</option>
@@ -177,7 +167,7 @@ export default function AuctionDraft() {
         {selectedUnit && (
           <div className="bg-blue-50 p-3 rounded-lg mb-6 text-center">
             <h2 className="text-xl font-semibold">
-              Bidding for: <span className="text-blue-600">{selectedUnit}</span>
+              Bidding for: <span className="text-blue-600">{selectedUnit.name}</span>
             </h2>
           </div>
         )}
@@ -253,7 +243,7 @@ export default function AuctionDraft() {
 
 
                 <div className="bg-yellow-50 p-2 rounded text-sm">
-                <p>Total price if won: ${calculateCost(parseInt(bids[idx]) || 0, parseInt(eidolonInputs[idx]) || 0, doNotOwn.filter(Boolean).length)}</p>
+                <p>Total price if won: ${calculateCost(parseInt(bids[idx]) || 0, parseInt(eidolonInputs[idx]) || 0, doNotOwn.filter(Boolean).length , selectedUnit ? selectedUnit.limited5Cost : false)}</p>
                 </div>
                 </div>
                 )}
