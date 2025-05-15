@@ -39,8 +39,9 @@ export default function AuctionDraft() {
     
     const validBids = players.map((p, i) => {
       if (p.team.length >= 4) return null; // skip if team full
+      if (p.budget < 100) return null; //skip if broke
       const totalCost = calculateCost(numericBids[i], eidolons[i], doNotOwnCount, selectedUnit.limited5Cost);
-      return p.budget >= totalCost ? {
+      return (p.budget >= totalCost) ? {
         player: p,
         bid: numericBids[i],
         totalCost,
@@ -58,18 +59,25 @@ export default function AuctionDraft() {
     }
 
     if (!highest) {
-      const fallbackIndex = players.findIndex(p => p.budget < 100);
+      const fallbackIndex = numericBids.findIndex((bid, i) =>
+        bid === 100 &&
+        players[i].budget < 100 &&
+        players[i].team.length < 4
+      );
       if (fallbackIndex !== -1) {
         const updatedPlayers = [...players];
         updatedPlayers[fallbackIndex] = {
           ...updatedPlayers[fallbackIndex],
-          team: [...updatedPlayers[fallbackIndex].team, { name: selectedUnit.name, eidolon: 0, image: selectedUnit.image }],
+          team: [...updatedPlayers[fallbackIndex].team, { name: selectedUnit.name, eidolon: eidolons[fallbackIndex], image: selectedUnit.image }],
         };
         setPlayers(updatedPlayers);
         setDraftHistory(prev => [
           ...prev,
           { unit: { name: selectedUnit.name, eidolon: 0 }, winner: players[fallbackIndex], bid: 0, fallback: true }
         ]);
+      }
+      else {
+        return;
       }
     } else {
       const updatedPlayers = players.map(p =>

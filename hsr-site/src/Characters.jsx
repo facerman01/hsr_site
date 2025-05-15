@@ -23,7 +23,7 @@ const characters = [
   },
   {
     name: "Arlan",
-    image: "/units/acheron.webp",
+    image: "/units/arlan.webp",
     limited5Cost: false,
   },
   {
