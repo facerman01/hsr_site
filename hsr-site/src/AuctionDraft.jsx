@@ -25,6 +25,7 @@ export default function AuctionDraft() {
   const [availableUnits, setAvailableUnits] = useState(unitPool);
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [doNotOwn, setDoNotOwn] = useState(Array(4).fill(false));
+  const allTeamsFull = players.every(p => p.team.length >= 4);
 
   
 
@@ -34,9 +35,10 @@ export default function AuctionDraft() {
     const numericBids = bids.map(b => parseInt(b) || 0);
     const eidolons = eidolonInputs.map(e => parseInt(e) || 0);
     const doNotOwnCount = doNotOwn.filter(Boolean).length;
-    const allTeamsFull = players.every(p => p.team.length >= 4);
+    
     
     const validBids = players.map((p, i) => {
+      if (p.team.length >= 4) return null; // skip if team full
       const totalCost = calculateCost(numericBids[i], eidolons[i], doNotOwnCount, selectedUnit.limited5Cost);
       return p.budget >= totalCost ? {
         player: p,
@@ -45,7 +47,8 @@ export default function AuctionDraft() {
         eidolon: eidolons[i],
         idx: i
       } : null;
-    }).filter(Boolean);  
+    }).filter(Boolean);
+    
 
     let highest = null;
     for (let entry of validBids) {

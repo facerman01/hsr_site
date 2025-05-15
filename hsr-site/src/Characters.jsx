@@ -8,7 +8,7 @@ const characters = [
   },
   {
     name: "Aglaea",
-    image: "/units/aglaea.jpg",
+    image: "/units/aglaea.webp",
     limited5Cost: true,
   },
   {
