@@ -34,6 +34,7 @@ export default function AuctionDraft() {
     const numericBids = bids.map(b => parseInt(b) || 0);
     const eidolons = eidolonInputs.map(e => parseInt(e) || 0);
     const doNotOwnCount = doNotOwn.filter(Boolean).length;
+    const allTeamsFull = players.every(p => p.team.length >= 4);
     
     const validBids = players.map((p, i) => {
       const totalCost = calculateCost(numericBids[i], eidolons[i], doNotOwnCount, selectedUnit.limited5Cost);
@@ -93,7 +94,7 @@ export default function AuctionDraft() {
 
   };
 
-  if (availableUnits.length === 0) {
+  if (allTeamsFull) {
     return (
       <div className="flex flex-col items-center min-h-screen p-6 bg-gray-50">
         <div className="w-full max-w-4xl mx-auto">
