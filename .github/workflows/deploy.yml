@@ -16,7 +16,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: '20.11.1'
+
+      - name: Clean node_modules/package-lock.json
+        run: rm -rf node_modules
+        run: rm package-lock.json
 
       - name: Install Dependencies
         run: npm install
