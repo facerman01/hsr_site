@@ -49,6 +49,7 @@ export default function AuctionDraft() {
     const validBids = players.map((p, i) => {
       if (p.team.length >= 4) return null; // skip if team full
       if (p.budget < 100) return null; //skip if broke
+      if (numericBids[i] === 0) return null;
       const totalCost = calculateCost(numericBids[i], eidolons[i], doNotOwnCount, selectedUnit.limited5Cost);
       return (p.budget >= totalCost) ? {
         player: p,
