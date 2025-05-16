@@ -2,13 +2,7 @@ import { useState } from "react";
 import { Button } from "./components/ui/Button";
 import { Card, CardContent } from "./components/ui/Card";
 import characters from './Characters';
-
-const initialPlayers = Array(4).fill(null).map((_, i) => ({
-  id: i + 1,
-  name: `Player ${i + 1}`,
-  budget: 1000,
-  team: []
-}));
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const unitPool = characters.map(c => c.name);
 
@@ -17,7 +11,29 @@ const calculateCost = (bid, eidolon, doNotOwnCount, isLimited5Cost) =>
 
 
 export default function AuctionDraft() {
-  const [players, setPlayers] = useState(initialPlayers);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const names = location.state?.names;
+
+  if (!names || names.length !== 4) {
+    // Redirect back if no valid names passed
+    navigate("/", { replace: true });
+    return null;
+  }
+
+  // Create players array with random order
+  const randomizePlayers = names
+    .map((name, index) => ({
+      id: index + 1,
+      name,
+      budget: 1000,
+      team: [],
+    }))
+    .sort(() => Math.random() - 0.5);
+
+
+  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
+  const [players, setPlayers] = useState(randomizePlayers);
   const [bids, setBids] = useState(Array(4).fill(""));
   const [draftHistory, setDraftHistory] = useState([]);
   const [eidolonInputs, setEidolonInputs] = useState(Array(4).fill(""));
@@ -26,20 +42,42 @@ export default function AuctionDraft() {
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [doNotOwn, setDoNotOwn] = useState(Array(4).fill(false));
   const allTeamsFull = players.every(p => p.team.length >= 4);
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState([]);  
+
+  const getNextAvailablePlayerIndex = (startIndex, players) => {
+    const totalPlayers = players.length;
+    let nextIndex = (startIndex + 1) % totalPlayers;
+  
+    while (players[nextIndex].team.length >= 4) {
+      nextIndex = (nextIndex + 1) % totalPlayers;
+      if (nextIndex === startIndex) {
+        // All players have full teams
+        return null;
+      }
+    }
+  
+    return nextIndex;
+  };
 
 
+    if (allTeamsFull) {
+      setCurrentPlayerIndex(0);
+    }
+  
   
 
   const handleBidSubmit = () => {
     if (!selectedUnit) return;
 
       // Save current state before making changes
-    setHistory(prev => [...prev, {
-      players: JSON.parse(JSON.stringify(players)),
-      availableUnits: [...availableUnits],
-      draftHistory: [...draftHistory],
-    }]);
+      // Save current state before making changes
+      setHistory(prev => [...prev, {
+        players: JSON.parse(JSON.stringify(players)),
+        availableUnits: [...availableUnits],
+        draftHistory: [...draftHistory],
+        currentPlayerIndex,  // <-- Add this
+      }]);
+
 
     const numericBids = bids.map(b => parseInt(b) || 0);
     const eidolons = eidolonInputs.map(e => parseInt(e) || 0);
@@ -67,7 +105,6 @@ export default function AuctionDraft() {
         highest = entry;
       }
     }
-
     if (!highest) {
       const fallbackIndex = numericBids.findIndex((bid, i) =>
         bid === 100 &&
@@ -81,6 +118,10 @@ export default function AuctionDraft() {
           team: [...updatedPlayers[fallbackIndex].team, { name: selectedUnit.name, eidolon: eidolons[fallbackIndex], image: selectedUnit.image }],
         };
         setPlayers(updatedPlayers);
+        const nextIndex = getNextAvailablePlayerIndex(currentPlayerIndex, updatedPlayers);
+        if (nextIndex !== null) {
+          setCurrentPlayerIndex(nextIndex);
+        }
         setDraftHistory(prev => [
           ...prev,
           { unit: { name: selectedUnit.name, eidolon: 0 }, winner: players[fallbackIndex], bid: 0, fallback: true }
@@ -101,6 +142,10 @@ export default function AuctionDraft() {
           : p
       );
       setPlayers(updatedPlayers);
+      const nextIndex = getNextAvailablePlayerIndex(currentPlayerIndex, updatedPlayers);
+      if (nextIndex !== null) {
+        setCurrentPlayerIndex(nextIndex);
+      }
       setDraftHistory(prev => [
         ...prev,
         { unit: { name: selectedUnit.name, eidolon: highest.eidolon }, winner: { ...highest.player, name: playerNames[highest.idx] }, bid: highest.bid, fallback: false }
@@ -113,6 +158,9 @@ export default function AuctionDraft() {
     setEidolonInputs(Array(4).fill(""));
     setDoNotOwn(Array(4).fill(false));
 
+
+
+
   };
 
   //undo function
@@ -123,8 +171,10 @@ export default function AuctionDraft() {
     setPlayers(lastState.players);
     setAvailableUnits(lastState.availableUnits);
     setDraftHistory(lastState.draftHistory);
+    setCurrentPlayerIndex(lastState.currentPlayerIndex);  // <-- Restore it
     setHistory(prev => prev.slice(0, -1));
   };
+  
   
 
 
@@ -188,7 +238,10 @@ export default function AuctionDraft() {
         <h1 className="text-3xl font-bold mb-6 text-center">Facer's Auction Draft</h1>
 
         <div className="bg-gray-100 p-4 rounded-lg shadow-md mb-6">
-          <label className="block mb-2 font-semibold text-center">Select a unit to auction:</label>
+        <label className="block mb-2 font-semibold text-center">
+          <span className="font-semibold italic">{playerNames[currentPlayerIndex]}</span>'s turn to select a unit for auction
+        </label>
+
           <div className="flex justify-center">
             <select
               value={selectedUnit ? selectedUnit.name : ""}
@@ -228,7 +281,11 @@ export default function AuctionDraft() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6 ">
         {players.map((player, idx) => (
-            <Card key={player.id} className="bg-gray-100 shadow-md ">
+            <Card key={player.id} className=
+            {`shadow-md 
+              ${idx === currentPlayerIndex ? "!bg-green-200 border-4 border-green-800" : "bg-gray-100"}
+            `}
+          >
             <CardContent className="p-4">
                 <div className="mb-4 ">
                 <input
