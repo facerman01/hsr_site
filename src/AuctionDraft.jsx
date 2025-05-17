@@ -57,13 +57,7 @@ export default function AuctionDraft() {
     }
   
     return nextIndex;
-  };
-
-
-    if (allTeamsFull) {
-      setCurrentPlayerIndex(0);
-    }
-  
+  };  
   
 
   const handleBidSubmit = () => {
@@ -157,7 +151,9 @@ export default function AuctionDraft() {
     setBids(Array(4).fill(""));
     setEidolonInputs(Array(4).fill(""));
     setDoNotOwn(Array(4).fill(false));
-
+    if (allTeamsFull){
+      setCurrentPlayerIndex(0);
+    }
 
 
 
@@ -189,12 +185,13 @@ export default function AuctionDraft() {
                 <CardContent className="p-4">
                   <h3 className="font-bold text-lg mb-2">{playerNames[i]}</h3>
                   <p className="mb-2"><span className="font-semibold">Budget Left:</span> ${p.budget}</p>
+                  <p className="mb-2"><span className="font-semibold">Cycle Deduction: -</span>{Math.min(p.budget / 100.0, 3.0).toFixed(2)}</p>
                   <div className="bg-gray-100 p-3 rounded">
                     <p className="font-semibold mb-1">Team:</p>
                     {p.team.length > 0 ? (
                       <ul className="list-disc">
                         {p.team.map((u, idx) => (
-                          <li key={i} className="flex items-center justify-start">
+                          <li key={idx} className="flex items-center justify-start">
                           <span>{u.name} (E{u.eidolon})</span>
                           <img
                             src={u.image}
@@ -248,6 +245,12 @@ export default function AuctionDraft() {
               onChange={e => {
                 const unit = characters.find(c => c.name === e.target.value);
                 setSelectedUnit(unit || null);
+                if (unit) {
+                  // Auto-fill 100 bid for the current player
+                  const newBids = [...bids];
+                  newBids[currentPlayerIndex] = "100";
+                  setBids(newBids);
+                }
               }}
               className="border p-2 mb-2 w-full max-w-xs rounded"
             >
