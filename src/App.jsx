@@ -5,7 +5,7 @@ import AuctionDraft from "./AuctionDraft";
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen bg-gray-400">
         <Routes>
           <Route path="/" element={<PlayerNames />} />
           <Route path="/auction" element={<AuctionDraft />} />
