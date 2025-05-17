@@ -330,9 +330,18 @@ export default function AuctionDraft() {
                         value={bids[idx]}
                         placeholder="Enter bid"
                         onChange={e => {
-                        const newBids = [...bids];
-                        newBids[idx] = e.target.value;
-                        setBids(newBids);
+                          const newBids = [...bids];
+                          newBids[idx] = e.target.value;
+                          setBids(newBids);
+                        }}
+                        onBlur={e => {
+                          const val = parseInt(e.target.value, 10);
+                          if (!isNaN(val)) {
+                            const rounded = Math.round(val / 25) * 25;
+                            const newBids = [...bids];
+                            newBids[idx] = rounded;
+                            setBids(newBids);
+                          }
                         }}
                     />
                     </div>
