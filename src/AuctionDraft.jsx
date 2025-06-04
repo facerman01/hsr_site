@@ -67,6 +67,7 @@ export default function AuctionDraft() {
   };  
 
   const handleBidSubmit = () => {
+    
     if (!selectedUnit) return;
 
     setHistory(prev => [...prev, {
@@ -82,7 +83,6 @@ export default function AuctionDraft() {
 
     const validBids = players.map((p, i) => {
       if (p.team.length >= 4) return null;
-      if (p.budget < 100) return null;
       if (numericBids[i] === 0) return null;
       const totalCost = calculateCost(numericBids[i], eidolons[i], doNotOwnCount, selectedUnit.limited5Cost);
       return (p.budget >= totalCost) ? {
@@ -93,7 +93,6 @@ export default function AuctionDraft() {
         idx: i
       } : null;
     }).filter(Boolean);
-
     let highest = null;
     for (let entry of validBids) {
       if (!highest || entry.bid > highest.bid) {
@@ -101,16 +100,17 @@ export default function AuctionDraft() {
       }
     }
     if (!highest) {
-      const fallbackIndex = numericBids.findIndex((bid, i) =>
-        bid === 100 &&
-        players[i].budget < 100 &&
-        players[i].team.length < 4
-      );
-      if (fallbackIndex !== -1) {
+      const fallbackIndex = currentPlayerIndex;
+      const player = players[fallbackIndex];
+      if (
+        player.team.length < 4
+      ) {
+        const originalBudget = player.budget;
         const updatedPlayers = [...players];
         updatedPlayers[fallbackIndex] = {
-          ...updatedPlayers[fallbackIndex],
-          team: [...updatedPlayers[fallbackIndex].team, { name: selectedUnit.name, eidolon: eidolons[fallbackIndex], image: selectedUnit.image }],
+          ...player,
+          budget: 0,
+          team: [...player.team, { name: selectedUnit.name, eidolon: eidolons[fallbackIndex], image: selectedUnit.image }],
         };
         setPlayers(updatedPlayers);
         const nextIndex = getNextAvailablePlayerIndex(currentPlayerIndex, updatedPlayers);
@@ -119,26 +119,35 @@ export default function AuctionDraft() {
         }
         setDraftHistory(prev => [
           ...prev,
-          { unit: { name: selectedUnit.name, eidolon: 0 }, winner: players[fallbackIndex], bid: 0, fallback: true }
+          {
+            unit: { name: selectedUnit.name, eidolon: 0 },
+            winner: { ...player, name: playerNames[fallbackIndex] },
+            bid: originalBudget,
+            fallback: true
+          }
         ]);
-      }
-      else {
+      } else {
         return;
       }
-    } else {
+    }
+    
+     else {
       // PATCH: Give unit for free if all others have full teams
-      const winnerGetsForFree = allOthersFullTeams(players, highest.player.id);
-
+      // const winnerGetsForFree = allOthersFullTeams(players, highest.player.id);
+      
       const updatedPlayers = players.map(p =>
         p.id === highest.player.id
           ? {
               ...p,
               name: playerNames[highest.idx],
-              budget: winnerGetsForFree ? p.budget : (p.budget - highest.totalCost),
+              budget: (p.budget >= highest.totalCost)
+                ? (p.budget - highest.totalCost)
+                : 0,
               team: [...p.team, { name: selectedUnit.name, eidolon: highest.eidolon, image: selectedUnit.image }],
             }
           : p
       );
+      
       setPlayers(updatedPlayers);
       const nextIndex = getNextAvailablePlayerIndex(currentPlayerIndex, updatedPlayers);
       if (nextIndex !== null) {
@@ -149,7 +158,7 @@ export default function AuctionDraft() {
         { 
           unit: { name: selectedUnit.name, eidolon: highest.eidolon }, 
           winner: { ...highest.player, name: playerNames[highest.idx] }, 
-          bid: winnerGetsForFree ? 0 : highest.bid, 
+          bid: Math.min(highest.totalCost, highest.player.budget),
           fallback: false 
         }
       ]);
@@ -219,7 +228,7 @@ export default function AuctionDraft() {
                 <div key={idx} className="border-b pb-2 last:border-b-0">
                   <span className="font-medium">{entry.unit.name} (E{entry.unit.eidolon})</span> - 
                   {entry.fallback ? (
-                    <span className="text-gray-600"> {entry.winner.name} (fallback)</span>
+                    <span> won by <span className="font-medium">{entry.winner.name}</span> for <span className="text-green-600">${entry.bid}</span> (broke) </span>
                   ) : (
                     <span> won by <span className="font-medium">{entry.winner.name}</span> for <span className="text-green-600">${entry.bid}</span></span>
                   )}
@@ -459,7 +468,9 @@ export default function AuctionDraft() {
 
                       <div className="bg-yellow-50 p-2 rounded text-sm">
                         <p>
-                          Total price if won: ${calculateCost(parseInt(bids[idx]) || 0, parseInt(eidolonInputs[idx]) || 0, doNotOwn.filter(Boolean).length, selectedUnit ? selectedUnit.limited5Cost : false)}
+                          Total price if won: <b>
+                            ${calculateCost(parseInt(bids[idx]) || 0, parseInt(eidolonInputs[idx]) || 0, doNotOwn.filter(Boolean).length, selectedUnit ? selectedUnit.limited5Cost : false)}
+                          </b>
                         </p>
                       </div>
                     </div>
