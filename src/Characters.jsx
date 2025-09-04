@@ -17,6 +17,11 @@ const characters = [
     limited5Cost: true,
   },
   {
+    name: "Archer",
+    image: "/units/archer.webp",
+    limited5Cost: true,
+  },
+  {
     name: "Argenti",
     image: "/units/argenti.webp",
     limited5Cost: true,
@@ -65,6 +70,16 @@ const characters = [
     name: "Castorice",
     image: "/units/castorice.webp",
     limited5Cost: true,
+  },  
+  {
+    name: "Cerydra",
+    image: "/units/cerydra.webp",
+    limited5Cost: true,
+  },
+  {
+    name: "Cipher",
+    image: "/units/cipher.webp",
+    limited5Cost: true,
   },
   {
     name: "Clara",
@@ -79,6 +94,11 @@ const characters = [
   {
     name: "Dan Heng • Imbibitor Lunae",
     image: "/units/dhil.webp",
+    limited5Cost: true,
+  },
+  {
+    name: "Dan Heng • Permansor Terrae",
+    image: "/units/dhpt.webp",
     limited5Cost: true,
   },
   {
@@ -147,6 +167,11 @@ const characters = [
     limited5Cost: true,
   },
   {
+    name: "Hysilens",
+    image: "/units/hysilens.webp",
+    limited5Cost: true,
+  },
+  {
     name: "Jade",
     image: "/units/jade.webp",
     limited5Cost: true,
@@ -197,6 +222,11 @@ const characters = [
     limited5Cost: false,
   },
   {
+    name: "March 7th • Evernight",
+    image: "/units/evernight.webp",
+    limited5Cost: false,
+  },
+  {
     name: "March 7th • The Hunt",
     image: "/units/m8.webp",
     limited5Cost: false,
@@ -227,6 +257,11 @@ const characters = [
     limited5Cost: false,
   },
   {
+    name: "Phainon",
+    image: "/units/phainon.webp",
+    limited5Cost: false,
+  },
+  {
     name: "Qingque",
     image: "/units/qingque.webp",
     limited5Cost: false,
@@ -245,6 +280,11 @@ const characters = [
     name: "Ruan Mei",
     image: "/units/ruanmei.webp",
     limited5Cost: true,
+  },
+  {
+    name: "Saber",
+    image: "/units/saber.webp",
+    limited5Cost: false,
   },
   {
     name: "Sampo",
